@@ -4,8 +4,7 @@ import com.reri72.dirwatcher.config.WatcherConfig;
 import com.reri72.dirwatcher.config.ConfigLoader;
 
 public class Main {
-    public static void main( String[] args ) {
-        System.out.println( "Hello World!" );
+    public static void main( String[] args ) { 
 
         try {
             WatcherConfig config = ConfigLoader.loadConfig();
@@ -21,6 +20,8 @@ public class Main {
         {
             System.err.println("Error : Failed to read or parse config.json");
             e.printStackTrace();
+            System.exit(0);
         }
+        
     }
 }

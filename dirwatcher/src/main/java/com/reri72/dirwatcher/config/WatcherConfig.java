@@ -13,4 +13,8 @@ public class WatcherConfig {
     public int getMonitorDurations() {
         return MonitorDurations;
     }
+
+    public void setMonitorDurations(int value) {
+        MonitorDurations = value;
+    }
 }
