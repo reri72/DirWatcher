@@ -6,6 +6,8 @@ public class WatcherConfig {
 
     private int MonitorDurations;
 
+    private String LogfilePath;
+
     public String getMonitorPath() {
         return MonitorPath;
     }
@@ -16,5 +18,9 @@ public class WatcherConfig {
 
     public void setMonitorDurations(int value) {
         MonitorDurations = value;
+    }
+
+    public String getLogfilePath() {
+        return LogfilePath;
     }
 }
