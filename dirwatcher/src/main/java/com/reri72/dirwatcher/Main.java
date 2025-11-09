@@ -34,7 +34,7 @@ public class Main {
             logPath = config.getLogfilePath();
 
             ChangeLogger logger = new FileChangeLogger(logPath);
-            DirectoryWatcher watcher = new DirectoryWatcher(watchPath, logger);
+            DirectoryWatcher watcher = new DirectoryWatcher(watchPath, logger, monDuration);
 
             Runtime.getRuntime().addShutdownHook(new Thread(watcher::stop));
             watcher.start();
