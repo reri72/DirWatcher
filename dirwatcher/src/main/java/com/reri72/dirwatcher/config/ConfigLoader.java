@@ -33,7 +33,13 @@ public class ConfigLoader {
 
             File monitorDir = new File(config.getMonitorPath());
             if (!monitorDir.exists() || !monitorDir.isDirectory()) {
-                throw new IllegalStateException("MonitorPath(" + config.getMonitorPath() + ") is not exist");
+            {
+                boolean created = monitorDir.mkdirs();
+                if (created)
+                    System.out.println("MonitorPath directory created: " + monitorDir.getAbsolutePath());
+                else
+                    throw new IllegalStateException("MonitorPath(" + config.getMonitorPath() + ") is not created");
+            }
             }
 
             // 감시 주기 값 확인
@@ -48,8 +54,13 @@ public class ConfigLoader {
             }
 
             File logDir = new File(config.getLogfilePath());
-            if (!logDir.exists() || !logDir.isDirectory()) {
-                throw new IllegalStateException("LogfilePath(" + config.getLogfilePath() + ") is not exist");
+            if (!logDir.exists() || !logDir.isDirectory())
+            {
+                boolean created = logDir.mkdirs();
+                if (created)
+                    System.out.println("LogfilePath directory created: " + logDir.getAbsolutePath());
+                else
+                    throw new IllegalStateException("LogfilePath(" + config.getLogfilePath() + ") is not created");
             }
 
             return config;
