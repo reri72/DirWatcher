@@ -5,9 +5,14 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
 public class FileChangeLogger implements ChangeLogger {
+
     private final Path logFilePath;
+    private final Map<String, Long> lastProcessedTime = new ConcurrentHashMap<>();
+    private final long debounceMs = 1000;
 
     public FileChangeLogger(String logFile)
     {
@@ -23,6 +28,12 @@ public class FileChangeLogger implements ChangeLogger {
     @Override
     public synchronized void logChange(String eventType, String filePath)
     {
+        long currentTime = System.currentTimeMillis();
+        Long lastTime = lastProcessedTime.get(filePath);
+
+        if (lastTime != null && (currentTime - lastTime) < debounceMs)
+            return;
+
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         String line = String.format("%s %-10s %s%n", timestamp, eventType, filePath);
 
@@ -36,6 +47,8 @@ public class FileChangeLogger implements ChangeLogger {
         }
 
         System.out.print(line);
+
+        lastProcessedTime.put(filePath, currentTime);
     }
 
     private void ensureLogFileExists()
