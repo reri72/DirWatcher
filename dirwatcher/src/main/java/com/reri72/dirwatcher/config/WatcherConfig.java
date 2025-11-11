@@ -8,6 +8,8 @@ public class WatcherConfig {
 
     private String LogfilePath;
 
+    private int LogFileMaxMSize;
+
     public String getMonitorPath() {
         return MonitorPath;
     }
@@ -22,5 +24,13 @@ public class WatcherConfig {
 
     public String getLogfilePath() {
         return LogfilePath;
+    }
+
+    public int getLogFileMaxMSize() {
+        return LogFileMaxMSize;
+    }
+
+    public void setLogFileMaxMSize(int value) {
+        LogFileMaxMSize = value;
     }
 }
