@@ -1,4 +1,6 @@
 {
     "MonitorPath": "/home/testdir",
-    "MonitorDurations": 30
+    "MonitorDurations": 5,
+    "LogfilePath": "/home/testdir/logs",
+    "LogFileMaxMSize": 5
 }
