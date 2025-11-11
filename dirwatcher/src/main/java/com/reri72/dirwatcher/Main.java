@@ -15,6 +15,7 @@ public class Main {
 
         int monDuration;
         String logPath;
+        int logSize;
 
         try {
             WatcherConfig config = ConfigLoader.loadConfig();
@@ -22,8 +23,9 @@ public class Main {
             System.out.println("-- config --");
 
             System.out.println(" MonitorPath : "+ config.getMonitorPath());
-            System.out.println(" MonitorDurations : "+ config.getMonitorDurations());
+            System.out.println(" MonitorDurations : "+ config.getMonitorDurations() + " Sec");
             System.out.println(" LogfilePath : "+ config.getLogfilePath());
+            System.out.println(" LogFileMaxMSize : " + config.getLogFileMaxMSize() + " MB");
 
             System.out.println("--------------------------\n");
 
@@ -32,8 +34,9 @@ public class Main {
 
             monDuration = config.getMonitorDurations();
             logPath = config.getLogfilePath();
+            logSize = config.getLogFileMaxMSize();
 
-            ChangeLogger logger = new FileChangeLogger(logPath);
+            ChangeLogger logger = new FileChangeLogger(logPath, logSize);
             DirectoryWatcher watcher = new DirectoryWatcher(watchPath, logger, monDuration);
 
             Runtime.getRuntime().addShutdownHook(new Thread(watcher::stop));

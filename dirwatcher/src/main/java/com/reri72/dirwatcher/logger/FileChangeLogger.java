@@ -14,41 +14,79 @@ public class FileChangeLogger implements ChangeLogger {
     private final Map<String, Long> lastProcessedTime = new ConcurrentHashMap<>();
     private final long debounceMs = 1000;
 
-    public FileChangeLogger(String logFile)
+    private final long maxFileSizeBytes;
+    private final int maxBackupFiles = 9;   // .9 까지 로테이트
+
+    public FileChangeLogger(String logFile, int logSize)
     {
         Path givenPath = Paths.get(logFile).toAbsolutePath();
         if (Files.isDirectory(givenPath))
             this.logFilePath = givenPath.resolve("dirwatch.log");
         else
             this.logFilePath = givenPath;
+        
+        maxFileSizeBytes = logSize * 1024L * 1024L;
 
         ensureLogFileExists();
     }
 
     @Override
-    public synchronized void logChange(String eventType, String filePath)
+    public synchronized void logChange(String eventType, String Content)
     {
         long currentTime = System.currentTimeMillis();
-        Long lastTime = lastProcessedTime.get(filePath);
+        Long lastTime = lastProcessedTime.get(Content);
 
         if (lastTime != null && (currentTime - lastTime) < debounceMs)
             return;
 
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        String line = String.format("%s %-10s %s%n", timestamp, eventType, filePath);
-
-        try (FileWriter fw = new FileWriter(logFilePath.toFile(), true))
+        try
         {
-            fw.write(line);
+            rotateLogfile();
+
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            String line = String.format("%s %-10s %s%n", timestamp, eventType, Content);
+
+            try (FileWriter fw = new FileWriter(logFilePath.toFile(), true))
+            {
+                fw.write(line);
+            }
+
+            System.out.print(line);
+
+            lastProcessedTime.put(Content, currentTime);
         }
         catch (IOException e)
         {
             e.printStackTrace();
         }
+    }
 
-        System.out.print(line);
+    private void rotateLogfile() throws IOException
+    {
+        if (!Files.exists(logFilePath))
+            return;
 
-        lastProcessedTime.put(filePath, currentTime);
+        long size = Files.size(logFilePath);
+        if (size < maxFileSizeBytes)
+            return;
+            
+        for (int i = maxBackupFiles; i >= 1; i--)
+        {
+            Path src = Paths.get(logFilePath.toString() + "." + i);
+            Path dest = Paths.get(logFilePath.toString() + "." + (i + 1));
+
+            if (Files.exists(dest))
+                Files.delete(dest);
+
+            if (Files.exists(src))
+                Files.move(src, dest, StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        // 현재 로그파일 .1 로 변경
+        Path firstBackup = Paths.get(logFilePath.toString() + ".1");
+        Files.move(logFilePath, firstBackup, StandardCopyOption.REPLACE_EXISTING);
+
+        Files.createFile(logFilePath);
     }
 
     private void ensureLogFileExists()

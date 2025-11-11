@@ -63,6 +63,12 @@ public class ConfigLoader {
                     throw new IllegalStateException("LogfilePath(" + config.getLogfilePath() + ") is not created");
             }
 
+            // 로그 파일 크기 최대 값(Mb) 확인
+            int logSize = config.getLogFileMaxMSize();
+            if (logSize <= 0) {
+                config.setLogFileMaxMSize(5); // 기본 5MB
+            }
+
             return config;
         }
         catch (FileNotFoundException e)
