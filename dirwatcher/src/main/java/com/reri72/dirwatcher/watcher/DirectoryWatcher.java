@@ -3,6 +3,7 @@ package com.reri72.dirwatcher.watcher;
 import com.reri72.dirwatcher.logger.ChangeLogger;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import static java.nio.file.StandardWatchEventKinds.*;
@@ -46,7 +47,12 @@ public class DirectoryWatcher {
 
             while (running)
             {
-                WatchKey key = watchService.take(); // 인터럽트 확인
+                WatchKey key = watchService.poll(monitorDuration, TimeUnit.SECONDS);
+                if (key == null)
+                {
+                    logger.logChange("[MONITOR]", "Timeout " + monitorDuration + " Second(s)");
+                    continue;
+                }
 
                 for (WatchEvent<?> event : key.pollEvents())
                 {
