@@ -36,8 +36,9 @@ public class Main {
             logPath = config.getlogfilePath();
             logSize = config.getlogFileMaxMSize();
 
-            ChangeLogger logger = new FileChangeLogger(logPath, logSize);
-            DirectoryWatcher watcher = new DirectoryWatcher(watchPath, logger, monDuration);
+            // 불변성 보장
+            final ChangeLogger logger = new FileChangeLogger(logPath, logSize);
+            final DirectoryWatcher watcher = new DirectoryWatcher(watchPath, logger, monDuration);
 
             Runtime.getRuntime().addShutdownHook(new Thread(watcher::stop));
             watcher.start();
@@ -46,7 +47,7 @@ public class Main {
         {
             System.err.println("Error : Failed to read or parse config.json");
             e.printStackTrace();
-            System.exit(0);
+            System.exit(1);
         }        
     }
 }

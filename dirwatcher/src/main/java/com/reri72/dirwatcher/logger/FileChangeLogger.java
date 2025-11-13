@@ -1,12 +1,16 @@
 package com.reri72.dirwatcher.logger;
 
-import java.io.FileWriter;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
+
+// java.nio.file.StandardOpenOption
+import static java.nio.file.StandardOpenOption.APPEND;
+import static java.nio.file.StandardOpenOption.CREATE;
 
 public class FileChangeLogger implements ChangeLogger {
 
@@ -31,10 +35,10 @@ public class FileChangeLogger implements ChangeLogger {
     }
 
     @Override
-    public synchronized void logChange(String eventType, String Content)
+    public synchronized void logChange(String eventType, String content)
     {
         long currentTime = System.currentTimeMillis();
-        Long lastTime = lastProcessedTime.get(Content);
+        Long lastTime = lastProcessedTime.get(content);
 
         if (lastTime != null && (currentTime - lastTime) < debounceMs)
             return;
@@ -44,16 +48,17 @@ public class FileChangeLogger implements ChangeLogger {
             rotateLogfile();
 
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            String line = String.format("%s %-10s %s%n", timestamp, eventType, Content);
+            String line = String.format("%s %-10s %s%n", timestamp, eventType, content);
 
-            try (FileWriter fw = new FileWriter(logFilePath.toFile(), true))
+            try (BufferedWriter writer = Files.newBufferedWriter(logFilePath, CREATE, APPEND))
             {
-                fw.write(line);
+                writer.write(line);
+                writer.flush();
             }
 
             System.out.print(line);
 
-            lastProcessedTime.put(Content, currentTime);
+            lastProcessedTime.put(content, currentTime);
         }
         catch (IOException e)
         {
