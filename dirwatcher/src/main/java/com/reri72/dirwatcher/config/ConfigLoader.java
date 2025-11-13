@@ -2,10 +2,9 @@ package com.reri72.dirwatcher.config;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.File;
 import java.io.IOException;
+import java.io.FileReader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -14,7 +13,7 @@ public class ConfigLoader {
 
     public static WatcherConfig loadConfig() throws IOException, JsonSyntaxException {
         Gson gson = new Gson();
-        Path configPath = Paths.get(CONFIG_FILE);
+        Path configPath = Paths.get(CONFIG_FILE).toAbsolutePath();
 
         System.out.println("Configuration file : " + configPath.toAbsolutePath());
 
@@ -31,15 +30,19 @@ public class ConfigLoader {
                 throw new IllegalStateException("Not exist monitorPath value");
             }
 
-            File monitorDir = new File(config.getmonitorPath());
-            if (!monitorDir.exists() || !monitorDir.isDirectory()) {
+            Path monitorPath = Paths.get(config.getmonitorPath());
+            if (!Files.exists(monitorPath) || !Files.isDirectory(monitorPath))
             {
-                boolean created = monitorDir.mkdirs();
-                if (created)
-                    System.out.println("monitorPath directory created: " + monitorDir.getAbsolutePath());
-                else
-                    throw new IllegalStateException("monitorPath(" + config.getmonitorPath() + ") is not created");
-            }
+                try
+                {
+                    Files.createDirectories(monitorPath);
+                    System.out.println("monitorPath directory created : " + monitorPath.toAbsolutePath());
+                }
+                catch (IOException e)
+                {
+                    throw new IllegalStateException("monitorPath directory creation failed : " 
+                                                        + monitorPath.toAbsolutePath(), e);
+                }
             }
 
             // 감시 주기 값 확인
@@ -53,14 +56,18 @@ public class ConfigLoader {
                 throw new IllegalStateException("Not exist logfilePath value");
             }
 
-            File logDir = new File(config.getlogfilePath());
-            if (!logDir.exists() || !logDir.isDirectory())
+            Path logDir = Paths.get(config.getlogfilePath());
+            if (!Files.exists(logDir))
             {
-                boolean created = logDir.mkdirs();
-                if (created)
-                    System.out.println("logfilePath directory created: " + logDir.getAbsolutePath());
-                else
+                try
+                {
+                    Files.createDirectories(logDir);
+                    System.out.println("logfilePath directory created : " + logDir.toAbsolutePath());
+                }
+                catch (IOException e)
+                {
                     throw new IllegalStateException("logfilePath(" + config.getlogfilePath() + ") is not created");
+                }
             }
 
             // 로그 파일 크기 최대 값(Mb) 확인
@@ -71,7 +78,7 @@ public class ConfigLoader {
 
             return config;
         }
-        catch (FileNotFoundException e)
+        catch (java.io.FileNotFoundException e)
         {
             System.err.println("Error: configuration file '" + CONFIG_FILE + "'");
             throw e;
