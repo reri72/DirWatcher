@@ -27,46 +27,46 @@ public class ConfigLoader {
             }
 
             // 감시 대상 경로 존재 확인
-            if (config.getMonitorPath() == null || config.getMonitorPath().isEmpty()) {
-                throw new IllegalStateException("Not exist MonitorPath value");
+            if (config.getmonitorPath() == null || config.getmonitorPath().isEmpty()) {
+                throw new IllegalStateException("Not exist monitorPath value");
             }
 
-            File monitorDir = new File(config.getMonitorPath());
+            File monitorDir = new File(config.getmonitorPath());
             if (!monitorDir.exists() || !monitorDir.isDirectory()) {
             {
                 boolean created = monitorDir.mkdirs();
                 if (created)
-                    System.out.println("MonitorPath directory created: " + monitorDir.getAbsolutePath());
+                    System.out.println("monitorPath directory created: " + monitorDir.getAbsolutePath());
                 else
-                    throw new IllegalStateException("MonitorPath(" + config.getMonitorPath() + ") is not created");
+                    throw new IllegalStateException("monitorPath(" + config.getmonitorPath() + ") is not created");
             }
             }
 
             // 감시 주기 값 확인
-            int duration = config.getMonitorDurations();
+            int duration = config.getmonitorDurations();
             if (duration <= 0) {
-                config.setMonitorDurations(60);
+                config.setmonitorDurations(60);
             }
 
             // 로그 파일 생성 경로 존재 확인
-            if (config.getLogfilePath() == null || config.getLogfilePath().isEmpty()) {
-                throw new IllegalStateException("Not exist LogfilePath value");
+            if (config.getlogfilePath() == null || config.getlogfilePath().isEmpty()) {
+                throw new IllegalStateException("Not exist logfilePath value");
             }
 
-            File logDir = new File(config.getLogfilePath());
+            File logDir = new File(config.getlogfilePath());
             if (!logDir.exists() || !logDir.isDirectory())
             {
                 boolean created = logDir.mkdirs();
                 if (created)
-                    System.out.println("LogfilePath directory created: " + logDir.getAbsolutePath());
+                    System.out.println("logfilePath directory created: " + logDir.getAbsolutePath());
                 else
-                    throw new IllegalStateException("LogfilePath(" + config.getLogfilePath() + ") is not created");
+                    throw new IllegalStateException("logfilePath(" + config.getlogfilePath() + ") is not created");
             }
 
             // 로그 파일 크기 최대 값(Mb) 확인
-            int logSize = config.getLogFileMaxMSize();
+            int logSize = config.getlogFileMaxMSize();
             if (logSize <= 0) {
-                config.setLogFileMaxMSize(5); // 기본 5MB
+                config.setlogFileMaxMSize(5); // 기본 5MB
             }
 
             return config;

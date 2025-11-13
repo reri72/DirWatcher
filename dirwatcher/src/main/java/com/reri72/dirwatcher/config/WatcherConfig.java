@@ -2,35 +2,35 @@ package com.reri72.dirwatcher.config;
 
 public class WatcherConfig {
 
-    private String MonitorPath;
+    private String monitorPath;
 
-    private int MonitorDurations;
+    private int monitorDurations;
 
-    private String LogfilePath;
+    private String logfilePath;
 
-    private int LogFileMaxMSize;
+    private int logFileMaxMSize;
 
-    public String getMonitorPath() {
-        return MonitorPath;
+    public String getmonitorPath() {
+        return monitorPath;
     }
 
-    public int getMonitorDurations() {
-        return MonitorDurations;
+    public int getmonitorDurations() {
+        return monitorDurations;
     }
 
-    public void setMonitorDurations(int value) {
-        MonitorDurations = value;
+    public void setmonitorDurations(int value) {
+        monitorDurations = value;
     }
 
-    public String getLogfilePath() {
-        return LogfilePath;
+    public String getlogfilePath() {
+        return logfilePath;
     }
 
-    public int getLogFileMaxMSize() {
-        return LogFileMaxMSize;
+    public int getlogFileMaxMSize() {
+        return logFileMaxMSize;
     }
 
-    public void setLogFileMaxMSize(int value) {
-        LogFileMaxMSize = value;
+    public void setlogFileMaxMSize(int value) {
+        logFileMaxMSize = value;
     }
 }
