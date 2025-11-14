@@ -6,6 +6,11 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import static java.nio.file.StandardWatchEventKinds.*;
 
 public class DirectoryWatcher {
@@ -16,6 +21,11 @@ public class DirectoryWatcher {
 
     private volatile boolean running = true;
 
+    private final Map<WatchKey, Path> keys = new ConcurrentHashMap<>();
+
+    private final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
+    private final Lock writeLock = rwLock.writeLock();
+
     public DirectoryWatcher(Path path, ChangeLogger logger, int monitorDuration)
     {
         this.path = path;
@@ -23,11 +33,22 @@ public class DirectoryWatcher {
         this.monitorDuration = monitorDuration;
     }
     
+    // 단일 등록
     private void register(Path dir, WatchService watchService) throws IOException {
-        dir.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
-        System.out.println("Registered directory : " + dir);
+        writeLock.lock();
+        try
+        {
+            WatchKey key = dir.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+            keys.put(key, dir);
+            System.out.println("Registered directory : " + dir);
+        }
+        finally
+        {
+            writeLock.unlock();
+        }
     }
 
+    // 재귀적 등록
     private void registerAll(final Path start, final WatchService watchService) throws IOException {
         Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
             @Override
@@ -43,7 +64,7 @@ public class DirectoryWatcher {
         try (WatchService watchService = FileSystems.getDefault().newWatchService())
         {
             registerAll(path, watchService);
-            System.out.println("감시 경로 : " + path);
+            System.out.println("Monitor : " + path);
 
             while (running)
             {
@@ -54,6 +75,14 @@ public class DirectoryWatcher {
                     continue;
                 }
 
+                Path dir = keys.get(key);
+                if (dir == null)
+                {
+                    logger.logChange("[MONITOR]", "skipping events : " + key);
+                    key.reset();
+                    continue;
+                }
+
                 for (WatchEvent<?> event : key.pollEvents())
                 {
                     WatchEvent.Kind<?> kind = event.kind();
@@ -61,26 +90,45 @@ public class DirectoryWatcher {
                         continue;
 
                     Path fileName = (Path) event.context();
-                    Path parentPath = (Path) key.watchable();
-                    Path fullPath = parentPath.resolve(fileName);
+                    Path parentPath = dir; // 맵에서 가져온 path 사용
+                    Path fullPath = parentPath.resolve(fileName); // 이벤트가 발생한 전체 경로
 
-                    if (kind == ENTRY_MODIFY && Files.isDirectory(fullPath, LinkOption.NOFOLLOW_LINKS))
-                        continue;
-
-                    if (kind == ENTRY_CREATE)
+                    try
                     {
-                        if (Files.isDirectory(fullPath, LinkOption.NOFOLLOW_LINKS))
+                        if (kind == ENTRY_CREATE)
                         {
-                            registerAll(fullPath, watchService);
+                            if (Files.isDirectory(fullPath, LinkOption.NOFOLLOW_LINKS))
+                            {
+                                registerAll(fullPath, watchService);
+                            }
                         }
+
+                        if (kind == ENTRY_DELETE) {}
+
+                        if (kind == ENTRY_MODIFY && Files.isDirectory(fullPath, LinkOption.NOFOLLOW_LINKS))
+                        {
+                            // continue;
+                        }
+                    }
+                    catch (NoSuchFileException e)
+                    {
+                        // 파일,디렉토리가 이미 삭제되었거나 이동된 경우
+                        System.err.println("[WARN] " + fullPath + " : " + e.getMessage());
+                        continue;
+                    }
+                    catch (IOException e)
+                    {
+                        System.err.println("[ERROR] " + fullPath + " : " + e.getMessage());
+                        continue;
                     }
 
                     logger.logChange(kind.name(), fullPath.toString());
                 }
                 
-                // 접근 불가하면 감시 중지
                 if (!key.reset())
-                    break;
+                {
+                    keys.remove(key);
+                }
             }
         }
         catch (IOException | InterruptedException e)
