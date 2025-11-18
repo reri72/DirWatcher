@@ -55,6 +55,11 @@ public class FileChangeLogger implements ChangeLogger {
                 writer.write(line);
                 writer.flush();
             }
+            catch (IOException e)
+            {
+                ensureLogFileExists();
+                e.printStackTrace();
+            }
 
             System.out.print(line);
 
