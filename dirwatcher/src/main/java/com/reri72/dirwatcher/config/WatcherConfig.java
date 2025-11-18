@@ -10,27 +10,27 @@ public class WatcherConfig {
 
     private int logFileMaxMSize;
 
-    public String getmonitorPath() {
+    public String getMonitorPath() {
         return monitorPath;
     }
 
-    public int getmonitorDurations() {
+    public int getMonitorDurations() {
         return monitorDurations;
     }
 
-    public void setmonitorDurations(int value) {
+    public void setMonitorDurations(int value) {
         monitorDurations = value;
     }
 
-    public String getlogfilePath() {
+    public String getLogfilePath() {
         return logfilePath;
     }
 
-    public int getlogFileMaxMSize() {
+    public int getLogFileMaxMSize() {
         return logFileMaxMSize;
     }
 
-    public void setlogFileMaxMSize(int value) {
+    public void setLogFileMaxMSize(int value) {
         logFileMaxMSize = value;
     }
 }

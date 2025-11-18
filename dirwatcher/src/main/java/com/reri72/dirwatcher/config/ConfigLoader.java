@@ -26,11 +26,11 @@ public class ConfigLoader {
             }
 
             // 감시 대상 경로 존재 확인
-            if (config.getmonitorPath() == null || config.getmonitorPath().isEmpty()) {
+            if (config.getMonitorPath() == null || config.getMonitorPath().isEmpty()) {
                 throw new IllegalStateException("Not exist monitorPath value");
             }
 
-            Path monitorPath = Paths.get(config.getmonitorPath());
+            Path monitorPath = Paths.get(config.getMonitorPath());
             if (!Files.exists(monitorPath) || !Files.isDirectory(monitorPath))
             {
                 try
@@ -46,17 +46,17 @@ public class ConfigLoader {
             }
 
             // 감시 주기 값 확인
-            int duration = config.getmonitorDurations();
+            int duration = config.getMonitorDurations();
             if (duration <= 0) {
-                config.setmonitorDurations(60);
+                config.setMonitorDurations(60);
             }
 
             // 로그 파일 생성 경로 존재 확인
-            if (config.getlogfilePath() == null || config.getlogfilePath().isEmpty()) {
+            if (config.getLogfilePath() == null || config.getLogfilePath().isEmpty()) {
                 throw new IllegalStateException("Not exist logfilePath value");
             }
 
-            Path logDir = Paths.get(config.getlogfilePath());
+            Path logDir = Paths.get(config.getLogfilePath());
             if (!Files.exists(logDir))
             {
                 try
@@ -66,14 +66,14 @@ public class ConfigLoader {
                 }
                 catch (IOException e)
                 {
-                    throw new IllegalStateException("logfilePath(" + config.getlogfilePath() + ") is not created");
+                    throw new IllegalStateException("logfilePath(" + config.getLogfilePath() + ") is not created");
                 }
             }
 
             // 로그 파일 크기 최대 값(Mb) 확인
-            int logSize = config.getlogFileMaxMSize();
+            int logSize = config.getLogFileMaxMSize();
             if (logSize <= 0) {
-                config.setlogFileMaxMSize(5); // 기본 5MB
+                config.setLogFileMaxMSize(5); // 기본 5MB
             }
 
             return config;

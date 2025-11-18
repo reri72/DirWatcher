@@ -22,19 +22,19 @@ public class Main {
 
             System.out.println("-- config --");
 
-            System.out.println(" monitorPath : "+ config.getmonitorPath());
-            System.out.println(" monitorDurations : "+ config.getmonitorDurations() + " Sec");
-            System.out.println(" logfilePath : "+ config.getlogfilePath());
-            System.out.println(" logFileMaxMSize : " + config.getlogFileMaxMSize() + " MB");
+            System.out.println(" monitorPath : "+ config.getMonitorPath());
+            System.out.println(" monitorDurations : "+ config.getMonitorDurations() + " Sec");
+            System.out.println(" logfilePath : "+ config.getLogfilePath());
+            System.out.println(" logFileMaxMSize : " + config.getLogFileMaxMSize() + " MB");
 
             System.out.println("--------------------------\n");
 
-            monPath = config.getmonitorPath();
+            monPath = config.getMonitorPath();
             watchPath = Paths.get(monPath).toAbsolutePath();
 
-            monDuration = config.getmonitorDurations();
-            logPath = config.getlogfilePath();
-            logSize = config.getlogFileMaxMSize();
+            monDuration = config.getMonitorDurations();
+            logPath = config.getLogfilePath();
+            logSize = config.getLogFileMaxMSize();
 
             // 불변성 보장
             final ChangeLogger logger = new FileChangeLogger(logPath, logSize);
