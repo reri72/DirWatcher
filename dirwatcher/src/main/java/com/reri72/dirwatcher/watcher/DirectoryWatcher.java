@@ -65,9 +65,22 @@ public class DirectoryWatcher {
         {
             registerAll(path, watchService);
             System.out.println("Monitor : " + path);
+            logger.logChange("[MONITOR]", "Started monitoring " + path.toString());
 
             while (running)
             {
+                // 최상위 경로가 삭제되면 이벤트 감지가 아예 안되므로
+                // 경로생성과 이벤트 등록을 다시 해준다.
+                if (!Files.exists(path))
+                {
+                    logger.logChange("[WARN]", "Main path deleted");
+                    
+                    Files.createDirectories(path);
+                    registerAll(path, watchService);
+                    logger.logChange("[MONITOR]", "Main path recreated and re-registered");
+                    continue;
+                }
+
                 WatchKey key = watchService.poll(monitorDuration, TimeUnit.SECONDS);
                 if (key == null)
                 {
@@ -104,21 +117,19 @@ public class DirectoryWatcher {
                         }
 
                         if (kind == ENTRY_DELETE) {}
-
-                        if (kind == ENTRY_MODIFY && Files.isDirectory(fullPath, LinkOption.NOFOLLOW_LINKS))
-                        {
-                            // continue;
-                        }
+                        if (kind == ENTRY_MODIFY && Files.isDirectory(fullPath, LinkOption.NOFOLLOW_LINKS)) {}
                     }
                     catch (NoSuchFileException e)
                     {
                         // 파일,디렉토리가 이미 삭제되었거나 이동된 경우
                         System.err.println("[WARN] " + fullPath + " : " + e.getMessage());
+                        logger.logChange("[WARN]", fullPath + " does not exist");
                         continue;
                     }
                     catch (IOException e)
                     {
                         System.err.println("[ERROR] " + fullPath + " : " + e.getMessage());
+                        logger.logChange("[ERROR]", fullPath + " : " + e.getMessage());
                         continue;
                     }
 
@@ -134,9 +145,15 @@ public class DirectoryWatcher {
         catch (IOException | InterruptedException e)
         {
             if (running)
+            {
                 e.printStackTrace();
+                logger.logChange("[ERROR]", e.getMessage());
+            }
             else
+            {
+                logger.logChange("[MONITOR]", "dirwatcher stopped.");
                 System.out.println("dirwatcher stopped.");
+            }
         }
     }
 
