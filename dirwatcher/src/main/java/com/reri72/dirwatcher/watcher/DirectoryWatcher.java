@@ -6,8 +6,11 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileOwnerAttributeView;
+import java.nio.file.attribute.UserPrincipal;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -22,6 +25,8 @@ public class DirectoryWatcher {
     private volatile boolean running = true;
 
     private final Map<WatchKey, Path> keys = new ConcurrentHashMap<>();
+    private final Map<Path, Long> fileSizes = new ConcurrentHashMap<>();
+    private final Map<Path, String> fileOwners = new ConcurrentHashMap<>();
 
     private final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
     private final Lock writeLock = rwLock.writeLock();
@@ -56,7 +61,31 @@ public class DirectoryWatcher {
                 register(dir, watchService);
                 return FileVisitResult.CONTINUE;
             }
+
+            @Override
+            public FileVisitResult visitFile(Path path, BasicFileAttributes Attrs) throws IOException {
+                fileSizes.put(path, Attrs.size());
+
+                String owner = getFileOwner(path);
+                fileOwners.put(path, owner);
+
+                return FileVisitResult.CONTINUE;
+            }
         });
+    }
+
+    private String getFileOwner(Path path) {
+        try {
+            FileOwnerAttributeView ownerView = Files.getFileAttributeView(path, FileOwnerAttributeView.class, LinkOption.NOFOLLOW_LINKS);
+            if (ownerView != null)
+            {
+                UserPrincipal owner = ownerView.getOwner();
+                return owner != null ? owner.getName() : "Unkown";
+            }
+        } catch (IOException e) {
+            return "OwnerCheckError";
+        }
+        return "NotSupported";
     }
 
     public void start()
@@ -75,6 +104,10 @@ public class DirectoryWatcher {
                 {
                     logger.logChange("[WARN]", "Main path deleted");
                     
+                    keys.clear();
+                    fileSizes.clear();
+                    fileOwners.clear();
+
                     Files.createDirectories(path);
                     registerAll(path, watchService);
                     logger.logChange("[MONITOR]", "Main path recreated and re-registered");
@@ -106,6 +139,11 @@ public class DirectoryWatcher {
                     Path parentPath = dir; // 맵에서 가져온 path 사용
                     Path fullPath = parentPath.resolve(fileName); // 이벤트가 발생한 전체 경로
 
+                    String ownerInfo = "NA";
+                    long currentSize = -1L;
+                    long previousSize = -1L;
+                    String sizeChangeInfo = "";
+
                     try
                     {
                         if (kind == ENTRY_CREATE)
@@ -114,16 +152,61 @@ public class DirectoryWatcher {
                             {
                                 registerAll(fullPath, watchService);
                             }
+                            else
+                            {
+                                // 초기 크기 및 소유자 기록
+                                currentSize = Files.size(fullPath);
+                                ownerInfo = getFileOwner(fullPath);
+
+                                fileSizes.put(fullPath, currentSize);
+                                fileOwners.put(fullPath, ownerInfo);
+                            }
                         }
 
-                        if (kind == ENTRY_DELETE) {}
-                        if (kind == ENTRY_MODIFY && Files.isDirectory(fullPath, LinkOption.NOFOLLOW_LINKS)) {}
+                        if (kind == ENTRY_DELETE)
+                        {
+                            ownerInfo = fileOwners.getOrDefault(fullPath, " (Deleted)");
+                            fileSizes.remove(fullPath);
+                            fileOwners.remove(fullPath);
+                        }
+
+                        if (kind == ENTRY_MODIFY)
+                        {
+                            if (Files.isDirectory(fullPath, LinkOption.NOFOLLOW_LINKS))
+                            {
+                                // 디렉토리 수정 이벤트 무시
+                            }
+                            else
+                            {
+                                // 최종 소유자 확인
+                                ownerInfo = getFileOwner(fullPath);
+                                fileOwners.put(fullPath, ownerInfo);
+
+                                previousSize = fileSizes.getOrDefault(fullPath, -1L);
+                                currentSize = Files.size(fullPath);
+                                fileSizes.put(fullPath, currentSize);
+
+                                if (previousSize != -1L)
+                                {
+                                    long diffSize = currentSize - previousSize;
+                                    sizeChangeInfo = String.format(", Change Size: %+d bytes (from %d to %d)", diffSize, previousSize, currentSize);
+                                }
+                                else
+                                {
+                                    sizeChangeInfo = String.format(", Current Size: %d bytes", currentSize);
+                                }
+                            }
+                        }
                     }
                     catch (NoSuchFileException e)
                     {
                         // 파일,디렉토리가 이미 삭제되었거나 이동된 경우
                         System.err.println("[WARN] " + fullPath + " : " + e.getMessage());
                         logger.logChange("[WARN]", fullPath + " does not exist");
+                        
+                        fileSizes.remove(fullPath);
+                        fileOwners.remove(fullPath);
+
                         continue;
                     }
                     catch (IOException e)
@@ -133,7 +216,8 @@ public class DirectoryWatcher {
                         continue;
                     }
 
-                    logger.logChange(kind.name(), fullPath.toString());
+                    String logMessage = String.format("%s, Owner : %s%s", fullPath.toString(), ownerInfo, sizeChangeInfo);
+                    logger.logChange(kind.name(), logMessage);
                 }
                 
                 if (!key.reset())
