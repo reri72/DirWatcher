@@ -31,6 +31,8 @@ public class DirectoryWatcher {
     private final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
     private final Lock writeLock = rwLock.writeLock();
 
+    private WatchService watchService;
+
     public DirectoryWatcher(Path path, ChangeLogger logger, int monitorDuration)
     {
         this.path = path;
@@ -90,8 +92,10 @@ public class DirectoryWatcher {
 
     public void start()
     {
-        try (WatchService watchService = FileSystems.getDefault().newWatchService())
+        try (WatchService ws = FileSystems.getDefault().newWatchService())
         {
+            this.watchService = ws;
+            
             registerAll(path, watchService);
             System.out.println("Monitor : " + path);
             logger.logChange("[MONITOR]", "Started monitoring " + path.toString());
@@ -239,10 +243,25 @@ public class DirectoryWatcher {
                 System.out.println("dirwatcher stopped.");
             }
         }
+        finally
+        {
+            this.watchService = null;
+        }
     }
 
     public void stop()
     {
         running = false;
+        if (watchService != null)
+        {
+            try
+            {
+                watchService.close();
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+        }
     }
 }
