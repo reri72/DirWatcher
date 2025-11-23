@@ -61,6 +61,10 @@ public class DirectoryWatcher {
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attr) throws IOException {
                 register(dir, watchService);
+
+                String owner = getFileOwner(dir);
+                fileOwners.put(dir, owner);
+
                 return FileVisitResult.CONTINUE;
             }
 
@@ -152,16 +156,16 @@ public class DirectoryWatcher {
                     {
                         if (kind == ENTRY_CREATE)
                         {
+                            // 초기 크기 및 소유자 기록
+                            currentSize = Files.size(fullPath);
+                            ownerInfo = getFileOwner(fullPath);
+                            
                             if (Files.isDirectory(fullPath, LinkOption.NOFOLLOW_LINKS))
                             {
                                 registerAll(fullPath, watchService);
                             }
                             else
                             {
-                                // 초기 크기 및 소유자 기록
-                                currentSize = Files.size(fullPath);
-                                ownerInfo = getFileOwner(fullPath);
-
                                 fileSizes.put(fullPath, currentSize);
                                 fileOwners.put(fullPath, ownerInfo);
                             }
