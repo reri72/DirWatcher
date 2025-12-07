@@ -14,7 +14,6 @@ public class ZipCompress implements Compress {
 
     private void addFileToZip(File file, String entryName, ZipOutputStream zos) throws IOException
     {
-        System.out.println("압축 중 (파일): " + entryName);
         try (FileInputStream fis = new FileInputStream(file))
         {
             ZipEntry zipEntry = new ZipEntry(entryName);
@@ -46,15 +45,7 @@ public class ZipCompress implements Compress {
             for (String fileName : fileNames)
             {
                 File file = new File(fileName);
-
-                if (file.isDirectory())
-                {
-
-                }
-                else // 일반 파일
-                {
-                    addFileToZip(file, fileName, zos);
-                }
+                addFileToZip(file, fileName, zos);
             }
         }
         catch (IOException e)
@@ -63,5 +54,4 @@ public class ZipCompress implements Compress {
             throw e;
         }
     }
-
 }
