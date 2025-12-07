@@ -31,7 +31,7 @@ public class ZipCompress implements Compress {
     }
 
     @Override
-    public void compress(String sourcePath, List<String> fileNames, String destPath) throws IOException
+    public void compress(List<String> fileNames, String destPath) throws IOException
     {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmssSSS");
         String now = LocalDateTime.now().format(formatter);

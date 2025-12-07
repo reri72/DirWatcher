@@ -32,7 +32,7 @@ public class Main
             ZipCompress zc = new ZipCompress();
             try
             {
-                zc.compress(sourcePath, pathList, destPath);
+                zc.compress(pathList, destPath);
             }
             catch (IOException e)
             {
