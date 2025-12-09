@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.zip.*;
 
@@ -33,10 +31,7 @@ public class ZipCompress implements Compress {
     @Override
     public void compress(List<String> fileNames, String destPath) throws IOException
     {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmssSSS");
-        String now = LocalDateTime.now().format(formatter);
-        System.out.println(now);
-
+        String now = getTimestamp();
         String zipFilePath = destPath+"/backup_" + now + ".zip";
 
         try (FileOutputStream fos = new FileOutputStream(zipFilePath);
