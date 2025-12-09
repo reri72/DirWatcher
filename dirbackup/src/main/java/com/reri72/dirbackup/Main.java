@@ -26,18 +26,27 @@ public class Main
         List<String> pathList = sourcePathValid(sourcePath);
         pathList.forEach(System.out::println);  
 
-        if (type.equalsIgnoreCase("zip"))
+        Compress compressor; 
+        switch (type.toLowerCase())
         {
-            System.out.println("ZIP!!!");
-            ZipCompress zc = new ZipCompress();
-            try
-            {
-                zc.compress(pathList, destPath);
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
+            case "zip" :
+                compressor = new ZipCompress();
+                break;
+            case "tar" :
+                compressor = new TarCompress();
+                break;
+            default :
+                errMessage("Unsupported type: " + type);
+                return; // 안넣으면 컴파일 오류
+        }
+
+        try
+        {
+            compressor.compress(pathList, destPath);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
         }
     }
 
