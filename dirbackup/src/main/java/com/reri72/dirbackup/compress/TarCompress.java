@@ -14,11 +14,25 @@ public class TarCompress implements Compress {
     private static void addFileToTar(TarArchiveOutputStream taos, Path file, Path baseDir) throws IOException
     {
         String entryName = baseDir.relativize(file).toString();
-        TarArchiveEntry entry = new TarArchiveEntry(file.toFile(), entryName);
-        taos.putArchiveEntry(entry);
+        if (Files.isDirectory(file))
+        {
+            TarArchiveEntry entry = new TarArchiveEntry(file.toFile(), entryName + "/");
+            taos.putArchiveEntry(entry);
+            taos.closeArchiveEntry();
 
-        Files.copy(file, taos);
-        taos.closeArchiveEntry();
+            try (var stream = Files.list(file))
+            {
+                for (Path p : (Iterable<Path>) stream::iterator)
+                    addFileToTar(taos, p, baseDir);
+            }
+        }
+        else
+        {
+            TarArchiveEntry entry = new TarArchiveEntry(file.toFile(), entryName);
+            taos.putArchiveEntry(entry);
+            Files.copy(file, taos);
+            taos.closeArchiveEntry();
+        }
     }
 
     @Override
@@ -38,16 +52,11 @@ public class TarCompress implements Compress {
                 for (String pathStr : fileNames)
                 {
                     Path path = Paths.get(pathStr);
-                    File file = path.toFile();
+                    if (!Files.exists(path))
+                        continue;
 
-                    if (file.isDirectory())
-                    {
-
-                    }
-                    else
-                    {
-                        addFileToTar(taos, path, path.getParent());
-                    }
+                    Path baseDir = path.getParent();
+                    addFileToTar(taos, path, baseDir);
                 }
             }
     }
