@@ -40,7 +40,18 @@ public class ZipCompress implements Compress {
             for (String fileName : fileNames)
             {
                 File file = new File(fileName);
-                addFileToZip(file, fileName, zos);
+                if (file.isDirectory())
+                {
+                    // 디렉토리는 이름이 / 로 끝나도록 처리해야 오류가 안남..
+                    String dirName = fileName.endsWith("/") ? fileName : fileName + "/";
+                    ZipEntry zipEntry = new ZipEntry(dirName);
+                    zos.putNextEntry(zipEntry);
+                    zos.closeEntry();
+                }
+                else if (file.isFile())
+                {
+                    addFileToZip(file, fileName, zos);
+                }
             }
         }
         catch (IOException e)
