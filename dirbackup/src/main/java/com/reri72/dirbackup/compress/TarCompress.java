@@ -4,12 +4,54 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.commons.compress.archivers.tar.*;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 
 public class TarCompress implements Compress {
+    
+    private Set<Path> getTopPaths(List<String> fileNames)
+    {
+        // Path 객체로 변환하고 절대경로로 존재 여부 다시 확인
+        List<Path> allPaths = fileNames.stream()
+                    .map(p -> Paths.get(p).toAbsolutePath().normalize())
+                    .filter(Files::exists)
+                    .collect(Collectors.toList());
+
+        if (allPaths.isEmpty())
+            return Collections.emptySet();
+        
+        // 오름차순 정렬
+        List<Path> sortedPaths = allPaths.stream()
+                                        .sorted(Comparator.comparing(Path::toString))
+                                        .collect(Collectors.toList());
+                                    
+        // sortedPaths.stream().forEach(System.out::println);
+
+        Set<Path> uniquePaths = new HashSet<>();
+        for (Path curPath : sortedPaths)
+        {
+            boolean isSub = false;
+            for (Path top : uniquePaths)
+            {
+                // 상위 하위 관계 확인해서 최상위 경로만 남기도록 함!
+                if (curPath.startsWith(top))
+                {
+                    isSub = true;
+                    break;
+                }
+            }
+
+            if (isSub == false)
+                uniquePaths.add(curPath);
+        }
+
+        // uniquePaths.stream().forEach(System.out::println);
+
+        return uniquePaths;
+    }
     
     private static void addFileToTar(TarArchiveOutputStream taos, Path file, Path baseDir) throws IOException
     {
@@ -49,14 +91,12 @@ public class TarCompress implements Compress {
                 // 긴 이름의 파일도 지원하도록
                 taos.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
 
-                for (String pathStr : fileNames)
-                {
-                    Path path = Paths.get(pathStr);
-                    if (!Files.exists(path))
-                        continue;
+                Set<Path> uniquePaths = getTopPaths(fileNames);
+                Path currentDir = Paths.get("").toAbsolutePath().normalize();
 
-                    Path baseDir = path.getParent();
-                    addFileToTar(taos, path, baseDir);
+                for (Path path : uniquePaths)
+                {
+                    addFileToTar(taos, path, currentDir);
                 }
             }
     }
