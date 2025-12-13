@@ -8,7 +8,12 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.zip.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ZipCompress implements Compress {
+
+    private static final Logger log = LoggerFactory.getLogger(ZipCompress.class);
 
     private void addFileToZip(File file, String entryName, ZipOutputStream zos) throws IOException
     {
@@ -37,6 +42,8 @@ public class ZipCompress implements Compress {
         try (FileOutputStream fos = new FileOutputStream(zipFilePath);
                 ZipOutputStream zos = new ZipOutputStream(fos))
         {
+            log.info("target size : {}, output : {}", fileNames.size(), zipFilePath);
+
             for (String fileName : fileNames)
             {
                 File file = new File(fileName);
@@ -56,7 +63,7 @@ public class ZipCompress implements Compress {
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            log.error("zip compress error : {}", zipFilePath, e);
             throw e;
         }
     }

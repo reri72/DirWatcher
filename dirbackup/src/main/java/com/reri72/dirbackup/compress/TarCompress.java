@@ -7,11 +7,16 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.apache.commons.compress.archivers.tar.*;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 
 public class TarCompress implements Compress {
     
+    private static final Logger log = LoggerFactory.getLogger(TarCompress.class);
+
     private Set<Path> getTopPaths(List<String> fileNames)
     {
         // Path 객체로 변환하고 절대경로로 존재 여부 다시 확인
@@ -27,8 +32,11 @@ public class TarCompress implements Compress {
         List<Path> sortedPaths = allPaths.stream()
                                         .sorted(Comparator.comparing(Path::toString))
                                         .collect(Collectors.toList());
-                                    
-        // sortedPaths.stream().forEach(System.out::println);
+
+        for (Path path : sortedPaths)
+        {
+            log.debug("sorted path : {}", path.toString());
+        }
 
         Set<Path> uniquePaths = new HashSet<>();
         for (Path curPath : sortedPaths)
@@ -48,7 +56,10 @@ public class TarCompress implements Compress {
                 uniquePaths.add(curPath);
         }
 
-        // uniquePaths.stream().forEach(System.out::println);
+        for (Path path : uniquePaths)
+        {
+            log.debug("Top path : {}", path.toString());
+        }
 
         return uniquePaths;
     }
@@ -88,6 +99,8 @@ public class TarCompress implements Compress {
             GzipCompressorOutputStream gzos = new GzipCompressorOutputStream(bos);
             TarArchiveOutputStream taos = new TarArchiveOutputStream(gzos))
             {
+                log.info("target size : {}, output : {}", fileNames.size(), tarFilePath);
+                
                 // 긴 이름의 파일도 지원하도록
                 taos.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
 
