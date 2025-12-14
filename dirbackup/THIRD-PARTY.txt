@@ -1,0 +1,10 @@
+
+Lists of 8 third-party dependencies.
+     (Eclipse Public License - v 1.0) (GNU Lesser General Public License) Logback Classic Module (ch.qos.logback:logback-classic:1.5.6 - http://logback.qos.ch/logback-classic)
+     (Eclipse Public License - v 1.0) (GNU Lesser General Public License) Logback Core Module (ch.qos.logback:logback-core:1.5.6 - http://logback.qos.ch/logback-core)
+     (Apache-2.0) Apache Commons Codec (commons-codec:commons-codec:1.17.0 - https://commons.apache.org/proper/commons-codec/)
+     (Apache-2.0) Apache Commons IO (commons-io:commons-io:2.16.1 - https://commons.apache.org/proper/commons-io/)
+     (Common Public License Version 1.0) JUnit (junit:junit:3.8.1 - http://junit.org)
+     (Apache-2.0) Apache Commons Compress (org.apache.commons:commons-compress:1.26.2 - https://commons.apache.org/proper/commons-compress/)
+     (Apache-2.0) Apache Commons Lang (org.apache.commons:commons-lang3:3.14.0 - https://commons.apache.org/proper/commons-lang/)
+     (MIT License) SLF4J API Module (org.slf4j:slf4j-api:2.0.13 - http://www.slf4j.org)

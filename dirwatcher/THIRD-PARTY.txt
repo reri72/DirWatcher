@@ -1,0 +1,4 @@
+
+Lists of 2 third-party dependencies.
+     (Apache-2.0) Gson (com.google.code.gson:gson:2.10.1 - https://github.com/google/gson/gson)
+     (Common Public License Version 1.0) JUnit (junit:junit:3.8.1 - http://junit.org)

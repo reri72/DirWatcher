@@ -1,0 +1,33 @@
+======================================================
+1. PROJECT COPYRIGHT AND LICENSING NOTICE
+======================================================
+
+Copyright (c) 2025 reri
+
+This software is licensed under the MIT License.
+A copy of this license is included in the project root directory as the LICENSE file.
+
+======================================================
+2. THIRD-PARTY NOTICES AND ATTRIBUTIONS
+======================================================
+
+This product includes software developed by third parties.
+These components are subject to the terms of their own respective licenses.
+
+The required third-party license notices and attributions for the dependency libraries used in this repository are provided in the following files:
+
+---
+
+### Project dirwatcher Notices
+
+The notices for third-party software used specifically within **dirwatcher** are located at:
+./dirwatcher/THIRD-PARTY.txt
+
+### Project dirbackup Notices
+
+The notices for third-party software used specifically within **dirbackup** are located at:
+./dirbackup/THIRD-PARTY.txt
+
+---
+
+By using this product, you acknowledge and agree to the terms and conditions set forth in the respective third-party licenses, which are fully contained in the referenced THIRD-PARTY.txt files.
