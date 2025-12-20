@@ -1,6 +1,11 @@
 {
     "monitorPath": "/home/testdir",
     "monitorDurations": 5,
-    "logfilePath": "/home/testdir/logs",
-    "logFileMaxMSize": 5
+    "logfilePath": "/home/logs",
+    "logFileMaxMSize": 5,
+    "compress": [{
+        "isCompressEnabled": false,
+        "compressFormat": "zip",
+        "jarLocation": "??.jar"
+    }]
 }

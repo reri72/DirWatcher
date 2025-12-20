@@ -26,24 +26,7 @@ public class ConfigLoader {
             }
 
             // 감시 대상 경로 존재 확인
-            if (config.getMonitorPath() == null || config.getMonitorPath().isEmpty()) {
-                throw new IllegalStateException("Not exist monitorPath value");
-            }
-
-            Path monitorPath = Paths.get(config.getMonitorPath());
-            if (!Files.exists(monitorPath) || !Files.isDirectory(monitorPath))
-            {
-                try
-                {
-                    Files.createDirectories(monitorPath);
-                    System.out.println("monitorPath directory created : " + monitorPath.toAbsolutePath());
-                }
-                catch (IOException e)
-                {
-                    throw new IllegalStateException("monitorPath directory creation failed : " 
-                                                        + monitorPath.toAbsolutePath(), e);
-                }
-            }
+            validateAndCreateDir(config.getMonitorPath(), "monitorPath");
 
             // 감시 주기 값 확인
             int duration = config.getMonitorDurations();
@@ -51,29 +34,31 @@ public class ConfigLoader {
                 config.setMonitorDurations(60);
             }
 
-            // 로그 파일 생성 경로 존재 확인
-            if (config.getLogfilePath() == null || config.getLogfilePath().isEmpty()) {
-                throw new IllegalStateException("Not exist logfilePath value");
-            }
-
-            Path logDir = Paths.get(config.getLogfilePath());
-            if (!Files.exists(logDir))
-            {
-                try
-                {
-                    Files.createDirectories(logDir);
-                    System.out.println("logfilePath directory created : " + logDir.toAbsolutePath());
-                }
-                catch (IOException e)
-                {
-                    throw new IllegalStateException("logfilePath(" + config.getLogfilePath() + ") is not created");
-                }
-            }
+            validateAndCreateDir(config.getLogfilePath(), "logfilePath");
 
             // 로그 파일 크기 최대 값(Mb) 확인
             int logSize = config.getLogFileMaxMSize();
             if (logSize <= 0) {
                 config.setLogFileMaxMSize(5); // 기본 5MB
+            }
+
+            if (config.getCompress() != null && !config.getCompress().isEmpty()) 
+            {
+
+                WatcherConfig.Compress compressConfig = config.getCompress().get(0);
+                try
+                {
+                    compressConfig.validate();
+
+                    config.setCompressActive(compressConfig.isCompressEnabled());
+                    config.setCompressFormat(compressConfig.getCompressFormat());
+                    config.setJarLocation(compressConfig.getJarLocation());
+                }
+                catch (Exception e)
+                {
+                    config.setCompressActive(false);
+                    throw new IllegalStateException("Invalid compress configuration : " + e.getMessage(), e);
+                }
             }
 
             return config;
@@ -82,6 +67,20 @@ public class ConfigLoader {
         {
             System.err.println("Error: configuration file '" + CONFIG_FILE + "'");
             throw e;
+        }
+    }
+
+    private static void validateAndCreateDir(String pathStr, String label) throws IOException {
+        if (pathStr == null || pathStr.isEmpty())
+        {
+            throw new IllegalStateException("Not exist " + label + " value");
+        }
+
+        Path path = Paths.get(pathStr);
+        if (!Files.exists(path))
+        {
+            Files.createDirectories(path);
+            System.out.println(label + " directory created : " + path.toAbsolutePath());
         }
     }
 }

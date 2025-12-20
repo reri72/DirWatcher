@@ -26,6 +26,12 @@ public class Main {
             System.out.println(" monitorDurations : "+ config.getMonitorDurations() + " Sec");
             System.out.println(" logfilePath : "+ config.getLogfilePath());
             System.out.println(" logFileMaxMSize : " + config.getLogFileMaxMSize() + " MB");
+            System.out.println(" isCompressEnabled : " + config.isCompressActive());
+            if (config.isCompressActive())
+            {
+                System.out.println(" compressFormat : " + config.getCompressFormat());
+                System.out.println(" jarLocation : " +  config.getJarLocation());
+            }
 
             System.out.println("--------------------------\n");
 
