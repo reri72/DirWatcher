@@ -3,6 +3,7 @@ package com.reri72.dirwatcher;
 import com.reri72.dirwatcher.config.*;
 import com.reri72.dirwatcher.logger.*;
 import com.reri72.dirwatcher.watcher.*;
+import com.reri72.dirwatcher.scheduler.*;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -31,6 +32,8 @@ public class Main {
             {
                 System.out.println(" compressFormat : " + config.getCompressFormat());
                 System.out.println(" jarLocation : " +  config.getJarLocation());
+                System.out.println(" compressTime : " + config.getCompressTime());
+                System.out.println(" targetPath : " + config.getTargetPath());
             }
 
             System.out.println("--------------------------\n");
@@ -46,12 +49,30 @@ public class Main {
             final ChangeLogger logger = new FileChangeLogger(logPath, logSize);
             final DirectoryWatcher watcher = new DirectoryWatcher(watchPath, logger, monDuration);
 
+            if (config.isCompressActive())
+            {
+                String format = config.getCompressFormat();
+                String jarPath = config.getJarLocation();
+                int compressTime = config.getCompressTime();
+                String targetPath = config.getTargetPath();
+
+                BackupScheduler scheduler = new BackupScheduler(
+                    jarPath,
+                    compressTime,
+                    format,
+                    monPath,
+                    targetPath,
+                    logger
+                );
+                scheduler.start();
+                Runtime.getRuntime().addShutdownHook(new Thread(scheduler::stop));
+            }
+
             Runtime.getRuntime().addShutdownHook(new Thread(watcher::stop));
             watcher.start();
         }
         catch (Exception e)
         {
-            System.err.println("Error : Failed to read or parse config.json");
             e.printStackTrace();
             System.exit(1);
         }        
