@@ -53,6 +53,8 @@ public class ConfigLoader {
                     config.setCompressActive(compressConfig.isCompressEnabled());
                     config.setCompressFormat(compressConfig.getCompressFormat());
                     config.setJarLocation(compressConfig.getJarLocation());
+                    config.setCompressTime(compressConfig.getCompressTime());
+                    config.setTargetPath(compressConfig.getTargetPath());
                 }
                 catch (Exception e)
                 {

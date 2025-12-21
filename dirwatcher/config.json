@@ -6,6 +6,8 @@
     "compress": [{
         "isCompressEnabled": false,
         "compressFormat": "zip",
-        "jarLocation": "??.jar"
+        "jarLocation": "?.jar",
+        "compressTime": 3,
+        "targetPath": "/home/compressed"
     }]
 }

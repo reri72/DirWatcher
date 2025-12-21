@@ -2,6 +2,9 @@ package com.reri72.dirwatcher.config;
 
 import com.google.gson.annotations.SerializedName;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 public class WatcherConfig {
@@ -15,6 +18,8 @@ public class WatcherConfig {
     private boolean isCompressEnabled = false;
     private String compressFormat = "zip";
     private String jarLocation;
+    private int compressTime = 2;
+    private String targetPath = "/tmp";
 
     public String getMonitorPath() { return monitorPath; }
     public int getMonitorDurations() { return monitorDurations; }
@@ -29,15 +34,21 @@ public class WatcherConfig {
     public boolean isCompressActive() { return isCompressEnabled; }
     public String getCompressFormat() { return compressFormat; }
     public String getJarLocation() { return jarLocation; }
+    public int getCompressTime() { return compressTime;}
+    public String getTargetPath() { return targetPath; }
     public void setCompressActive(boolean value) { isCompressEnabled = value; }
     public void setCompressFormat(String value) { compressFormat = value; }
     public void setJarLocation(String value) { jarLocation = value; }
+    public void setCompressTime(int value) { compressTime = value; }
+    public void setTargetPath(String value) { targetPath = value; }
 
     public static class Compress {
         @SerializedName("isCompressEnabled")
         private boolean isCompressEnabled = false;
-        private String compressFormat = "zip";
+        private String compressFormat;
         private String jarLocation;
+        private int compressTime;
+        private String targetPath;
 
         public void validate() throws Exception
         {
@@ -68,18 +79,43 @@ public class WatcherConfig {
                 {
                     throw new Exception("jarLocation file is not executable : " + this.jarLocation);
                 }
+
+                if (this.compressTime < 0 || this.compressTime > 23)
+                {
+                    throw new Exception("compressTime is out of range (0-23) : " + this.compressTime);
+                }
+
+                if (this.targetPath == null || this.targetPath.isEmpty())
+                {
+                    throw new Exception("targetPath is null or empty");
+                }
+
+                Path path = Paths.get(this.targetPath);
+                if (!Files.exists(path) || !Files.isDirectory(path))
+                {
+                    Files.createDirectories(path);
+                }
             }
         }
 
         public boolean isCompressEnabled() {
             return isCompressEnabled;
         }
-
+        
         public String getCompressFormat() {
             return compressFormat;
         }
+
         public String getJarLocation() {
             return jarLocation;
+        }
+
+        public int getCompressTime() {
+            return compressTime;
+        }
+
+        public String getTargetPath() {
+            return targetPath;
         }
     }
 }
