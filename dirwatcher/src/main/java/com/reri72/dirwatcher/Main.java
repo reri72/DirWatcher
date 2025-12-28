@@ -49,26 +49,31 @@ public class Main {
             final ChangeLogger logger = new FileChangeLogger(logPath, logSize);
             final DirectoryWatcher watcher = new DirectoryWatcher(watchPath, logger, monDuration);
 
+            BackupScheduler tempscheduler = null;
             if (config.isCompressActive())
             {
-                String format = config.getCompressFormat();
-                String jarPath = config.getJarLocation();
-                int compressTime = config.getCompressTime();
-                String targetPath = config.getTargetPath();
-
-                BackupScheduler scheduler = new BackupScheduler(
-                    jarPath,
-                    compressTime,
-                    format,
+                tempscheduler = new BackupScheduler(
+                    config.getJarLocation(),
+                    config.getCompressTime(),
+                    config.getCompressFormat(),
                     monPath,
-                    targetPath,
+                    config.getTargetPath(),
                     logger
                 );
-                scheduler.start();
-                Runtime.getRuntime().addShutdownHook(new Thread(scheduler::stop));
+                tempscheduler.start();
             }
 
-            Runtime.getRuntime().addShutdownHook(new Thread(watcher::stop));
+            final BackupScheduler scheduler = tempscheduler;
+            Runtime.getRuntime().addShutdownHook(new Thread(()-> {
+                if (scheduler != null)
+                {
+                    logger.logChange("[SCHEDULE]", "Stopping backup scheduler...");
+                    scheduler.stop();
+                }
+                logger.logChange("[SCHEDULE]", "Stopping watcher scheduler...");
+                watcher.stop();
+            }));
+
             watcher.start();
         }
         catch (Exception e)

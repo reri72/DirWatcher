@@ -247,6 +247,11 @@ public class DirectoryWatcher {
                 System.out.println("dirwatcher stopped.");
             }
         }
+        catch (ClosedWatchServiceException e)
+        {
+            if (running)
+                logger.logChange("[ERROR]", "WatchService closed unexpectedly");
+        }
         finally
         {
             this.watchService = null;

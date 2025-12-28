@@ -75,7 +75,6 @@ public class BackupScheduler {
     }
 
     public void stop() {
-        logger.logChange("[SCHEDULE]", "Stopping backup scheduler...");
         scheduler.shutdown();
     }
 }
