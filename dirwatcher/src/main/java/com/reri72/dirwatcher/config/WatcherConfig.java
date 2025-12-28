@@ -1,7 +1,6 @@
 package com.reri72.dirwatcher.config;
 
 import com.google.gson.annotations.SerializedName;
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -64,18 +63,13 @@ public class WatcherConfig {
                     throw new Exception("jarLocation is null or empty");
                 }
 
-                File jarFile = new File(this.jarLocation);
-                if (!jarFile.exists() || !jarFile.isFile())
+                Path jarFile = Path.of(this.jarLocation); // 요즘 이렇게 쓰인다고 함
+                if (!Files.exists(jarFile) || !Files.isRegularFile(jarFile))
                 {
                     throw new Exception("jarLocation file does not exist : " + this.jarLocation);
                 }
 
-                if (!jarFile.isFile())
-                {
-                    throw new Exception("jarLocation file is not exist : " + this.jarLocation);
-                }
-
-                if (!jarFile.canExecute())
+                if (!Files.isExecutable(jarFile))
                 {
                     throw new Exception("jarLocation file is not executable : " + this.jarLocation);
                 }
